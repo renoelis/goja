@@ -1627,6 +1627,11 @@ func (r *Runtime) createTypedArrayCtor(val *Object, ctor func(args []Value, newT
 	bpe := intToValue(int64(bytesPerElement))
 	o._putProp("BYTES_PER_ELEMENT", bpe, false, false, false)
 	p._putProp("BYTES_PER_ELEMENT", bpe, false, false, false)
+	
+	// 🔥 添加 from() 和 of() 静态方法到每个 TypedArray 子类
+	// 这些方法已在 typedArray_from 和 typedArray_of 中实现
+	o._putProp("from", r.newNativeFunc(r.typedArray_from, "from", 1), true, false, true)
+	o._putProp("of", r.newNativeFunc(r.typedArray_of, "of", 0), true, false, true)
 }
 
 func addTypedArrays(t *objectTemplate) {

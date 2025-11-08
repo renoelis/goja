@@ -1029,7 +1029,14 @@ func toUint8(v Value) uint8 {
 	if f, ok := v.(valueFloat); ok {
 		f := float64(f)
 		if !math.IsNaN(f) && !math.IsInf(f, 0) {
-			return uint8(int64(f))
+			// ✅ 修复：符合 ECMAScript 规范 7.1.11 ToUint8
+			// 步骤 4: Let int8bit be int modulo 2^8
+			modulo := math.Mod(f, 256)
+			// 处理负数：JavaScript 的模运算对负数返回正值
+			if modulo < 0 {
+				modulo += 256
+			}
+			return uint8(int64(modulo))
 		}
 	}
 	return 0

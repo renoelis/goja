@@ -1013,9 +1013,21 @@ func toInt8(v Value) int8 {
 
 	if f, ok := v.(valueFloat); ok {
 		f := float64(f)
-		if !math.IsNaN(f) && !math.IsInf(f, 0) {
-			return int8(int64(f))
+		// 根据 ECMAScript 规范：NaN、±Infinity、±0 都返回 0
+		if math.IsNaN(f) || math.IsInf(f, 0) || f == 0 {
+			return 0
 		}
+		// 先截断到整数，然后对 256 取模，最后转换为有符号
+		intPart := math.Trunc(f)
+		mod := math.Mod(intPart, 256)
+		if mod < 0 {
+			mod += 256
+		}
+		// 转换为有符号：128-255 映射到 -128 到 -1
+		if mod >= 128 {
+			return int8(mod - 256)
+		}
+		return int8(mod)
 	}
 	return 0
 }
@@ -1028,9 +1040,19 @@ func toUint8(v Value) uint8 {
 
 	if f, ok := v.(valueFloat); ok {
 		f := float64(f)
-		if !math.IsNaN(f) && !math.IsInf(f, 0) {
-			return uint8(int64(f))
+		// 根据 ECMAScript 规范：NaN、±Infinity、±0 都返回 0
+		if math.IsNaN(f) || math.IsInf(f, 0) || f == 0 {
+			return 0
 		}
+		// 对于其他值，先截断到整数，然后对 256 取模
+		// 使用 math.Mod 而不是 int64 转换，避免溢出
+		intPart := math.Trunc(f)
+		// 对 256 取模，处理负数
+		mod := math.Mod(intPart, 256)
+		if mod < 0 {
+			mod += 256
+		}
+		return uint8(mod)
 	}
 	return 0
 }
@@ -1082,9 +1104,18 @@ func toInt16(v Value) int16 {
 
 	if f, ok := v.(valueFloat); ok {
 		f := float64(f)
-		if !math.IsNaN(f) && !math.IsInf(f, 0) {
-			return int16(int64(f))
+		if math.IsNaN(f) || math.IsInf(f, 0) || f == 0 {
+			return 0
 		}
+		intPart := math.Trunc(f)
+		mod := math.Mod(intPart, 65536)
+		if mod < 0 {
+			mod += 65536
+		}
+		if mod >= 32768 {
+			return int16(mod - 65536)
+		}
+		return int16(mod)
 	}
 	return 0
 }
@@ -1097,9 +1128,15 @@ func toUint16(v Value) uint16 {
 
 	if f, ok := v.(valueFloat); ok {
 		f := float64(f)
-		if !math.IsNaN(f) && !math.IsInf(f, 0) {
-			return uint16(int64(f))
+		if math.IsNaN(f) || math.IsInf(f, 0) || f == 0 {
+			return 0
 		}
+		intPart := math.Trunc(f)
+		mod := math.Mod(intPart, 65536)
+		if mod < 0 {
+			mod += 65536
+		}
+		return uint16(mod)
 	}
 	return 0
 }
@@ -1112,9 +1149,18 @@ func toInt32(v Value) int32 {
 
 	if f, ok := v.(valueFloat); ok {
 		f := float64(f)
-		if !math.IsNaN(f) && !math.IsInf(f, 0) {
-			return int32(int64(f))
+		if math.IsNaN(f) || math.IsInf(f, 0) || f == 0 {
+			return 0
 		}
+		intPart := math.Trunc(f)
+		mod := math.Mod(intPart, 4294967296)
+		if mod < 0 {
+			mod += 4294967296
+		}
+		if mod >= 2147483648 {
+			return int32(mod - 4294967296)
+		}
+		return int32(mod)
 	}
 	return 0
 }
@@ -1127,9 +1173,15 @@ func toUint32(v Value) uint32 {
 
 	if f, ok := v.(valueFloat); ok {
 		f := float64(f)
-		if !math.IsNaN(f) && !math.IsInf(f, 0) {
-			return uint32(int64(f))
+		if math.IsNaN(f) || math.IsInf(f, 0) || f == 0 {
+			return 0
 		}
+		intPart := math.Trunc(f)
+		mod := math.Mod(intPart, 4294967296)
+		if mod < 0 {
+			mod += 4294967296
+		}
+		return uint32(mod)
 	}
 	return 0
 }

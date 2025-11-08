@@ -856,6 +856,15 @@ func (a *typedArrayObject) setOwnStr(p unistring.String, v Value, throw bool) bo
 		toNumeric(v) // make sure it throws
 		return true
 	}
+	
+	// 🔥 修复：对齐 Node.js 行为 - 只读属性赋值静默失败而不抛出错误
+	// Node.js 中，TypedArray 的 length、byteLength、byteOffset 等属性赋值会被忽略
+	pStr := p.String()
+	if pStr == "length" || pStr == "byteLength" || pStr == "byteOffset" || pStr == "buffer" {
+		// 静默失败，不抛出错误（对齐 Node.js 行为）
+		return true
+	}
+	
 	return a.baseObject.setOwnStr(p, v, throw)
 }
 

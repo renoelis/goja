@@ -577,7 +577,7 @@ func (r *Runtime) stringproto_repeat(call FunctionCall) Value {
 	}
 
 	var sb unicodeStringBuilder
-	sb.Grow(u.Length() * num)
+	sb.ensureStarted(u.Length() * num)  // 🔥 修复：确保 BOM 已添加
 	for i := 0; i < num; i++ {
 		sb.writeUnicodeString(u)
 	}

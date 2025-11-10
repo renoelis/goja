@@ -193,14 +193,24 @@ func (r *Runtime) arrayproto_join(call FunctionCall) Value {
 
 	element0 := o.self.getIdx(valueInt(0), nil)
 	if element0 != nil && element0 != _undefined && element0 != _null {
-		buf.WriteString(element0.toString())
+		// 🔥 修复：检查循环引用，防止栈溢出
+		if elementObj, ok := element0.(*Object); ok && elementObj == o {
+			// 循环引用，跳过（Node.js 行为）
+		} else {
+			buf.WriteString(element0.toString())
+		}
 	}
 
 	for i := 1; i < l; i++ {
 		buf.WriteString(sep)
 		element := o.self.getIdx(valueInt(int64(i)), nil)
 		if element != nil && element != _undefined && element != _null {
-			buf.WriteString(element.toString())
+			// 🔥 修复：检查循环引用，防止栈溢出
+			if elementObj, ok := element.(*Object); ok && elementObj == o {
+				// 循环引用，跳过（Node.js 行为）
+			} else {
+				buf.WriteString(element.toString())
+			}
 		}
 	}
 

@@ -572,6 +572,10 @@ func floatToIntClip(n float64) int64 {
 	switch {
 	case math.IsNaN(n):
 		return 0
+	case math.IsInf(n, 1): // +Infinity
+		return math.MaxInt64
+	case math.IsInf(n, -1): // -Infinity
+		return math.MinInt64
 	case n >= math.MaxInt64:
 		return math.MaxInt64
 	case n <= math.MinInt64:

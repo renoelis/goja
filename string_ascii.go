@@ -170,7 +170,7 @@ func (s asciiString) ToInteger() int64 {
 	if err != nil {
 		f, err := s._toFloat(ss)
 		if err == nil {
-			return int64(f)
+			return floatToIntClip(f)
 		}
 	}
 	return i

@@ -1153,7 +1153,8 @@ func (r *Runtime) typedArrayProto_sort(call FunctionCall) Value {
 func (r *Runtime) typedArrayProto_subarray(call FunctionCall) Value {
 	if ta, ok := r.toObject(call.This).self.(*typedArrayObject); ok {
 		l := int64(ta.length)
-		beginIdx := relToIdx(call.Argument(0).ToInteger(), l)
+		startInt := call.Argument(0).ToInteger()
+		beginIdx := relToIdx(startInt, l)
 		var relEnd int64
 		if endArg := call.Argument(1); endArg != _undefined {
 			relEnd = endArg.ToInteger()
@@ -1162,6 +1163,12 @@ func (r *Runtime) typedArrayProto_subarray(call FunctionCall) Value {
 		}
 		endIdx := relToIdx(relEnd, l)
 		newLen := max(endIdx-beginIdx, 0)
+		
+		// DEBUG: 打印调试信息
+		if r.globalObject != nil {
+			_ = startInt // 避免未使用变量警告
+		}
+		
 		return r.typedArraySpeciesCreate(ta, []Value{ta.viewedArrayBuf.val,
 			intToValue((int64(ta.offset) + beginIdx) * int64(ta.elemSize)),
 			intToValue(newLen),

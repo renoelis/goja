@@ -869,7 +869,20 @@ func (a *typedArrayObject) setOwnStr(p unistring.String, v Value, throw bool) bo
 }
 
 func (a *typedArrayObject) setOwnIdx(p valueInt, v Value, throw bool) bool {
-	a._putIdx(toIntClamp(int64(p)), v)
+	// 🔥 性能优化：避免不必要的类型检查，直接使用整数索引
+	idx := int(p)
+	
+	// 🔥 优化：内联isValidIntegerIndex检查，减少函数调用开销
+	if idx >= 0 && idx < a.length && !a.viewedArrayBuf.detached {
+		// 🔥 优化：对于Uint8Array（最常见的Buffer类型），直接写入，避免类型转换
+		if u8, ok := a.typedArray.(*uint8Array); ok {
+			// 直接写入字节值，避免ToNumber()调用
+			*u8.ptr(a.offset + idx) = toUint8(v)
+		} else {
+			// 其他TypedArray使用标准路径
+			a._putIdx(idx, v)
+		}
+	}
 	return true
 }
 

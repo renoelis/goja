@@ -962,7 +962,8 @@ func (a *typedArrayObject) deleteStr(name unistring.String, throw bool) bool {
 	idx, ok := strToIntNum(name)
 	if ok {
 		if a.isValidIntegerIndex(idx) {
-			a.val.runtime.typeErrorResult(throw, "Cannot delete property '%d' of %s", idx, a.val.String())
+			// Fixed: TypedArray indices cannot be deleted, but do not throw an error (align with Node.js)
+			// a.val.runtime.typeErrorResult(throw, "Cannot delete property '%d' of %s", idx, a.val.String())
 			return false
 		}
 		return true
@@ -975,7 +976,8 @@ func (a *typedArrayObject) deleteStr(name unistring.String, throw bool) bool {
 
 func (a *typedArrayObject) deleteIdx(idx valueInt, throw bool) bool {
 	if a.viewedArrayBuf.ensureNotDetached(false) && idx >= 0 && int64(idx) < int64(a.length) {
-		a.val.runtime.typeErrorResult(throw, "Cannot delete property '%d' of %s", idx, a.val.String())
+		// Fixed: TypedArray indices cannot be deleted, but do not throw an error (align with Node.js)
+		// a.val.runtime.typeErrorResult(throw, "Cannot delete property '%d' of %s", idx, a.val.String())
 		return false
 	}
 

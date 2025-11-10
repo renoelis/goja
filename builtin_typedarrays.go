@@ -1375,6 +1375,30 @@ func (r *Runtime) typedArraySpeciesCreate(ta *typedArrayObject, args []Value) *t
 }
 
 func (r *Runtime) typedArrayCreate(ctor *Object, args ...Value) *typedArrayObject {
+	// Fixed: If args is a single number and constructor has alloc method (Buffer.alloc),
+	// use it instead of calling the constructor directly (align with Node.js)
+	if len(args) == 1 {
+		if _, ok := args[0].(valueInt); ok {
+			// Check if constructor has alloc method (Buffer specific)
+			if allocMethod := ctor.self.getStr("alloc", nil); allocMethod != nil && allocMethod != _undefined {
+				// toCallable returns func(FunctionCall) Value, not error
+				allocFunc := r.toCallable(allocMethod)
+				// Use Buffer.alloc(size) instead of new Buffer(size)
+				allocResult := allocFunc(FunctionCall{
+					This:      ctor,
+					Arguments: args,
+				})
+				if allocObj, ok := allocResult.(*Object); ok {
+					if ta, ok := allocObj.self.(*typedArrayObject); ok {
+						ta.viewedArrayBuf.ensureNotDetached(true)
+						return ta
+					}
+				}
+			}
+		}
+	}
+	
+	// Original logic: call constructor directly
 	o := r.toConstructor(ctor)(args, ctor)
 	if ta, ok := o.self.(*typedArrayObject); ok {
 		ta.viewedArrayBuf.ensureNotDetached(true)

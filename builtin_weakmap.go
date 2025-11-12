@@ -81,7 +81,7 @@ func (r *Runtime) weakMapProto_set(call FunctionCall) Value {
 	if !ok {
 		panic(r.NewTypeError("Method WeakMap.prototype.set called on incompatible receiver %s", r.objectproto_toString(FunctionCall{This: thisObj})))
 	}
-	key := r.toObject(call.Argument(0))
+	key := r.requireWeakMapKey(call.Argument(0))
 	wmo.m.set(key, call.Argument(1))
 	return call.This
 }
@@ -119,7 +119,7 @@ func (r *Runtime) builtin_newWeakMap(args []Value, newTarget *Object) *Object {
 					itemObj := r.toObject(item)
 					k := itemObj.self.getIdx(i0, nil)
 					v := nilSafe(itemObj.self.getIdx(i1, nil))
-					wmo.m.set(r.toObject(k), v)
+					wmo.m.set(r.requireWeakMapKey(k), v)
 				})
 			} else {
 				iter.iterate(func(item Value) {
@@ -132,6 +132,13 @@ func (r *Runtime) builtin_newWeakMap(args []Value, newTarget *Object) *Object {
 		}
 	}
 	return o
+}
+
+func (r *Runtime) requireWeakMapKey(key Value) *Object {
+	if obj, ok := key.(*Object); ok {
+		return obj
+	}
+	panic(r.NewTypeError("Invalid value used as weak map key"))
 }
 
 func (r *Runtime) createWeakMapProto(val *Object) objectImpl {

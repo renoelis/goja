@@ -16,7 +16,7 @@ func (r *Runtime) weakSetProto_add(call FunctionCall) Value {
 	if !ok {
 		panic(r.NewTypeError("Method WeakSet.prototype.add called on incompatible receiver %s", r.objectproto_toString(FunctionCall{This: thisObj})))
 	}
-	wso.s.set(r.toObject(call.Argument(0)), nil)
+	wso.s.set(r.requireWeakSetValue(call.Argument(0)), nil)
 	return call.This
 }
 
@@ -67,11 +67,11 @@ func (r *Runtime) builtin_newWeakSet(args []Value, newTarget *Object) *Object {
 			if adder == r.global.weakSetAdder {
 				if stdArr != nil {
 					for _, v := range stdArr.values {
-						wso.s.set(r.toObject(v), nil)
+						wso.s.set(r.requireWeakSetValue(v), nil)
 					}
 				} else {
 					r.getIterator(arg, nil).iterate(func(item Value) {
-						wso.s.set(r.toObject(item), nil)
+						wso.s.set(r.requireWeakSetValue(item), nil)
 					})
 				}
 			} else {
@@ -92,6 +92,13 @@ func (r *Runtime) builtin_newWeakSet(args []Value, newTarget *Object) *Object {
 		}
 	}
 	return o
+}
+
+func (r *Runtime) requireWeakSetValue(val Value) *Object {
+	if obj, ok := val.(*Object); ok {
+		return obj
+	}
+	panic(r.NewTypeError("Invalid value used in weak set"))
 }
 
 func (r *Runtime) createWeakSetProto(val *Object) objectImpl {

@@ -181,9 +181,7 @@ func (a *uint8Array) typeMatch(v Value) bool {
 }
 
 func (a *uint8Array) export(offset int, length int) interface{} {
-	// Note: offset is already handled in newUint8ArrayObject by creating an offset slice
-	// So here we start from 0, not from offset again (to avoid double offset)
-	return ([]uint8)(*a)[0 : length : length]
+	return ([]uint8)(*a)[offset : offset+length : offset+length]
 }
 
 func (a *uint8Array) exportType() reflect.Type {
@@ -232,8 +230,7 @@ func (a *uint8ClampedArray) typeMatch(v Value) bool {
 }
 
 func (a *uint8ClampedArray) export(offset int, length int) interface{} {
-	// Note: offset is already handled in newUint8ClampedArrayObject by creating an offset slice
-	return ([]uint8)(*a)[0 : length : length]
+	return ([]uint8)(*a)[offset : offset+length : offset+length]
 }
 
 func (a *uint8ClampedArray) exportType() reflect.Type {
@@ -282,10 +279,9 @@ func (a *int8Array) typeMatch(v Value) bool {
 }
 
 func (a *int8Array) export(offset int, length int) interface{} {
-	// Note: offset is already handled in newInt8ArrayObject by creating an offset slice
 	var res []int8
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&res))
-	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data
+	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data + uintptr(offset)
 	sliceHeader.Len = length
 	sliceHeader.Cap = length
 	return res
@@ -341,10 +337,9 @@ func (a *uint16Array) typeMatch(v Value) bool {
 var typeUint16Array = reflect.TypeOf(([]uint16)(nil))
 
 func (a *uint16Array) export(offset int, length int) interface{} {
-	// Note: offset is already handled in newUint16ArrayObject by creating an offset slice
 	var res []uint16
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&res))
-	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data
+	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data + uintptr(offset)*2
 	sliceHeader.Len = length
 	sliceHeader.Cap = length
 	return res
@@ -396,10 +391,9 @@ func (a *int16Array) typeMatch(v Value) bool {
 }
 
 func (a *int16Array) export(offset int, length int) interface{} {
-	// Note: offset is already handled in newInt16ArrayObject by creating an offset slice
 	var res []int16
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&res))
-	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data
+	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data + uintptr(offset)*2
 	sliceHeader.Len = length
 	sliceHeader.Cap = length
 	return res
@@ -453,10 +447,9 @@ func (a *uint32Array) typeMatch(v Value) bool {
 }
 
 func (a *uint32Array) export(offset int, length int) interface{} {
-	// Note: offset is already handled in newUint32ArrayObject by creating an offset slice
 	var res []uint32
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&res))
-	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data
+	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data + uintptr(offset)*4
 	sliceHeader.Len = length
 	sliceHeader.Cap = length
 	return res
@@ -510,10 +503,9 @@ func (a *int32Array) typeMatch(v Value) bool {
 }
 
 func (a *int32Array) export(offset int, length int) interface{} {
-	// Note: offset is already handled in newInt32ArrayObject by creating an offset slice
 	var res []int32
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&res))
-	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data
+	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data + uintptr(offset)*4
 	sliceHeader.Len = length
 	sliceHeader.Cap = length
 	return res
@@ -582,10 +574,9 @@ func (a *float32Array) typeMatch(v Value) bool {
 }
 
 func (a *float32Array) export(offset int, length int) interface{} {
-	// Note: offset is already handled in newFloat32ArrayObject by creating an offset slice
 	var res []float32
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&res))
-	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data
+	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data + uintptr(offset)*4
 	sliceHeader.Len = length
 	sliceHeader.Cap = length
 	return res
@@ -640,10 +631,9 @@ func (a *float64Array) typeMatch(v Value) bool {
 }
 
 func (a *float64Array) export(offset int, length int) interface{} {
-	// Note: offset is already handled in newFloat64ArrayObject by creating an offset slice
 	var res []float64
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&res))
-	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data
+	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data + uintptr(offset)*8
 	sliceHeader.Len = length
 	sliceHeader.Cap = length
 	return res
@@ -710,10 +700,9 @@ func (a *bigInt64Array) typeMatch(v Value) bool {
 }
 
 func (a *bigInt64Array) export(offset int, length int) interface{} {
-	// Note: offset is already handled in newBigInt64ArrayObject by creating an offset slice
 	var res []int64
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&res))
-	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data
+	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data + uintptr(offset)*8
 	sliceHeader.Len = length
 	sliceHeader.Cap = length
 	return res
@@ -772,10 +761,9 @@ func (a *bigUint64Array) typeMatch(v Value) bool {
 }
 
 func (a *bigUint64Array) export(offset int, length int) interface{} {
-	// Note: offset is already handled in newBigUint64ArrayObject by creating an offset slice
 	var res []uint64
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&res))
-	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data
+	sliceHeader.Data = (*reflect.SliceHeader)(unsafe.Pointer(a)).Data + uintptr(offset)*8
 	sliceHeader.Len = length
 	sliceHeader.Cap = length
 	return res
@@ -1089,60 +1077,47 @@ func (r *Runtime) _newTypedArrayObject(buf *arrayBufferObject, offset, length, e
 func (r *Runtime) newUint8ArrayObject(buf *arrayBufferObject, offset, length int, proto *Object) *typedArrayObject {
 	// Note, no need to use r.getUint8Array() here or in the similar methods below, because the value is already set
 	// by the time they are called.
-	// Fix byteOffset issue: create slice from the correct offset
-	offsetData := buf.data[offset:]
-	return r._newTypedArrayObject(buf, offset, length, 1, r.global.Uint8Array, (*uint8Array)(&offsetData), proto)
+	return r._newTypedArrayObject(buf, offset, length, 1, r.global.Uint8Array, (*uint8Array)(&buf.data), proto)
 }
 
 func (r *Runtime) newUint8ClampedArrayObject(buf *arrayBufferObject, offset, length int, proto *Object) *typedArrayObject {
-	offsetData := buf.data[offset:]
-	return r._newTypedArrayObject(buf, offset, length, 1, r.global.Uint8ClampedArray, (*uint8ClampedArray)(&offsetData), proto)
+	return r._newTypedArrayObject(buf, offset, length, 1, r.global.Uint8ClampedArray, (*uint8ClampedArray)(&buf.data), proto)
 }
 
 func (r *Runtime) newInt8ArrayObject(buf *arrayBufferObject, offset, length int, proto *Object) *typedArrayObject {
-	offsetData := buf.data[offset:]
-	return r._newTypedArrayObject(buf, offset, length, 1, r.global.Int8Array, (*int8Array)(&offsetData), proto)
+	return r._newTypedArrayObject(buf, offset, length, 1, r.global.Int8Array, (*int8Array)(&buf.data), proto)
 }
 
 func (r *Runtime) newUint16ArrayObject(buf *arrayBufferObject, offset, length int, proto *Object) *typedArrayObject {
-	// For 16-bit types, offset is in bytes, but we need to create a view from the correct byte position
-	offsetData := buf.data[offset:]
-	return r._newTypedArrayObject(buf, offset, length, 2, r.global.Uint16Array, (*uint16Array)(&offsetData), proto)
+	return r._newTypedArrayObject(buf, offset, length, 2, r.global.Uint16Array, (*uint16Array)(&buf.data), proto)
 }
 
 func (r *Runtime) newInt16ArrayObject(buf *arrayBufferObject, offset, length int, proto *Object) *typedArrayObject {
-	offsetData := buf.data[offset:]
-	return r._newTypedArrayObject(buf, offset, length, 2, r.global.Int16Array, (*int16Array)(&offsetData), proto)
+	return r._newTypedArrayObject(buf, offset, length, 2, r.global.Int16Array, (*int16Array)(&buf.data), proto)
 }
 
 func (r *Runtime) newUint32ArrayObject(buf *arrayBufferObject, offset, length int, proto *Object) *typedArrayObject {
-	offsetData := buf.data[offset:]
-	return r._newTypedArrayObject(buf, offset, length, 4, r.global.Uint32Array, (*uint32Array)(&offsetData), proto)
+	return r._newTypedArrayObject(buf, offset, length, 4, r.global.Uint32Array, (*uint32Array)(&buf.data), proto)
 }
 
 func (r *Runtime) newInt32ArrayObject(buf *arrayBufferObject, offset, length int, proto *Object) *typedArrayObject {
-	offsetData := buf.data[offset:]
-	return r._newTypedArrayObject(buf, offset, length, 4, r.global.Int32Array, (*int32Array)(&offsetData), proto)
+	return r._newTypedArrayObject(buf, offset, length, 4, r.global.Int32Array, (*int32Array)(&buf.data), proto)
 }
 
 func (r *Runtime) newFloat32ArrayObject(buf *arrayBufferObject, offset, length int, proto *Object) *typedArrayObject {
-	offsetData := buf.data[offset:]
-	return r._newTypedArrayObject(buf, offset, length, 4, r.global.Float32Array, (*float32Array)(&offsetData), proto)
+	return r._newTypedArrayObject(buf, offset, length, 4, r.global.Float32Array, (*float32Array)(&buf.data), proto)
 }
 
 func (r *Runtime) newFloat64ArrayObject(buf *arrayBufferObject, offset, length int, proto *Object) *typedArrayObject {
-	offsetData := buf.data[offset:]
-	return r._newTypedArrayObject(buf, offset, length, 8, r.global.Float64Array, (*float64Array)(&offsetData), proto)
+	return r._newTypedArrayObject(buf, offset, length, 8, r.global.Float64Array, (*float64Array)(&buf.data), proto)
 }
 
 func (r *Runtime) newBigInt64ArrayObject(buf *arrayBufferObject, offset, length int, proto *Object) *typedArrayObject {
-	offsetData := buf.data[offset:]
-	return r._newTypedArrayObject(buf, offset, length, 8, r.global.BigInt64Array, (*bigInt64Array)(&offsetData), proto)
+	return r._newTypedArrayObject(buf, offset, length, 8, r.global.BigInt64Array, (*bigInt64Array)(&buf.data), proto)
 }
 
 func (r *Runtime) newBigUint64ArrayObject(buf *arrayBufferObject, offset, length int, proto *Object) *typedArrayObject {
-	offsetData := buf.data[offset:]
-	return r._newTypedArrayObject(buf, offset, length, 8, r.global.BigUint64Array, (*bigUint64Array)(&offsetData), proto)
+	return r._newTypedArrayObject(buf, offset, length, 8, r.global.BigUint64Array, (*bigUint64Array)(&buf.data), proto)
 }
 
 func (o *dataViewObject) getIdxAndByteOrder(getIdx int, littleEndianVal Value, size int) (int, byteOrder) {

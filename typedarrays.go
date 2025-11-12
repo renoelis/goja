@@ -29,6 +29,7 @@ type arrayBufferObject struct {
 	baseObject
 	detached bool
 	data     []byte
+	cleanup  func() // 🔥 新增：mmap内存清理回调
 }
 
 // ArrayBuffer is a Go wrapper around ECMAScript ArrayBuffer. Calling Runtime.ToValue() on it
@@ -122,6 +123,17 @@ func (a ArrayBuffer) Detached() bool {
 func (r *Runtime) NewArrayBuffer(data []byte) ArrayBuffer {
 	buf := r._newArrayBuffer(r.getArrayBufferPrototype(), nil)
 	buf.data = data
+	return ArrayBuffer{
+		buf: buf,
+	}
+}
+
+// NewArrayBufferWithCleanup creates an ArrayBuffer with a cleanup callback
+// 🔥 新增：支持cleanup回调的ArrayBuffer创建方法，用于mmap内存管理
+func (r *Runtime) NewArrayBufferWithCleanup(data []byte, cleanup func()) ArrayBuffer {
+	buf := r._newArrayBuffer(r.getArrayBufferPrototype(), nil)
+	buf.data = data
+	buf.cleanup = cleanup // 设置cleanup回调
 	return ArrayBuffer{
 		buf: buf,
 	}
@@ -1297,6 +1309,11 @@ func (o *arrayBufferObject) setInt8(idx int, val int8) {
 }
 
 func (o *arrayBufferObject) detach() {
+	// 🔥 关键修复：在detach时调用cleanup回调
+	if o.cleanup != nil {
+		o.cleanup()
+		o.cleanup = nil // 防止重复调用
+	}
 	o.data = nil
 	o.detached = true
 }

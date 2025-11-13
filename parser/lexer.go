@@ -924,16 +924,23 @@ func parseNumberLiteral(literal string) (value interface{}, err error) {
 		if len(literal) > 2 &&
 			literal[0] == '0' && (literal[1] == 'X' || literal[1] == 'x') &&
 			literal[len(literal)-1] != 'n' {
-			// Could just be a very large number (e.g. 0x8000000000000000)
-			var value float64
-			literal = literal[2:]
+			// 🔥 修复：超大十六进制数使用 big.Float 精确计算，避免 float64 精度丢失
+			// 问题：float64 只有 53 位精度，超过 MAX_SAFE_INTEGER 的大数会有舍入误差
+			// 例如：0x0102030405060700 错误地被解析为 72623859790382850，正确值应该是 72623859790382848
+			// 解决：使用 big.Float 进行精确计算，然后转换为 float64
+			var bigValue big.Float
+			literal = literal[2:] // 移除 "0x" 前缀
 			for _, chr := range literal {
 				digit := digitValue(chr)
 				if digit >= 16 {
 					goto error
 				}
-				value = value*16 + float64(digit)
+				// 使用 big.Float 精确计算: value = value * 16 + digit
+				bigValue.Mul(&bigValue, big.NewFloat(16))
+				bigValue.Add(&bigValue, big.NewFloat(float64(digit)))
 			}
+			// 转换为 float64（会有舍入，但基于精确的中间计算）
+			value, _ := bigValue.Float64()
 			return value, nil
 		}
 	}

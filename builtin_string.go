@@ -566,6 +566,15 @@ func (r *Runtime) stringproto_repeat(call FunctionCall) Value {
 		return stringEmpty
 	}
 	num := toIntStrict(numInt)
+
+	// Check if resulting string length exceeds kStringMaxLength (536870888)
+	// This aligns with Node.js v25.0.0 behavior
+	const kStringMaxLength = 536870888
+	resultLength := int64(s.Length()) * numInt
+	if resultLength > kStringMaxLength {
+		panic(r.newError(r.getRangeError(), "Invalid string length"))
+	}
+
 	a, u := devirtualizeString(s)
 	if u == nil {
 		var sb strings.Builder
